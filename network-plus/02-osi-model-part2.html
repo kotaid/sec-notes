@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 - OSI Model Part 2 | ClearSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+    --accent: #00d4ff; --accent2: #ff6b35; --text: #e2e8f0; --muted: #64748b;
+    --green: #10b981; --yellow: #f59e0b;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 60px 24px 120px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-home { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; }
+  .nav-home:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* STAR BUTTON */
+  .star-btn { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s; cursor: pointer; letter-spacing: 0.05em; }
+  .star-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.08); }
+  .star-btn .star-icon { font-size: 14px; transition: transform 0.2s; }
+  .star-btn:hover .star-icon { transform: scale(1.3) rotate(15deg); }
+  .star-btn .star-label { font-weight: 700; }
+
+  /* STAR BANNER */
+  .star-banner { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin-bottom: 48px; flex-wrap: wrap; gap: 12px; }
+  .star-banner-text { font-size: 0.87rem; color: #94a3b8; }
+  .star-banner-text strong { color: var(--text); }
+
+  /* HEADER */
+  .header { border-left: 3px solid var(--accent); padding-left: 20px; margin-bottom: 40px; }
+  .series-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 8px; }
+  .part-badge { display: inline-block; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; line-height: 1.8; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+
+  /* NAV PILLS */
+  .nav-pills { display: flex; gap: 8px; margin-bottom: 48px; flex-wrap: wrap; }
+  .pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); text-decoration: none; }
+  .pill.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+  /* RECAP */
+  .recap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin-bottom: 40px; }
+  .recap-title { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; }
+  .recap-item { display: flex; gap: 10px; font-size: 0.87rem; color: #94a3b8; align-items: center; margin-bottom: 6px; }
+  .layer-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 3px; flex-shrink: 0; font-weight: 700; color: #000; }
+  .l1-bg{background:#f59e0b}.l2-bg{background:#10b981}
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 1.25rem; font-weight: 700; color: #fff; margin: 52px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); flex-shrink: 0; }
+  h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 28px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+  p { font-size: 0.93rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.8; }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 0.91rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.7; }
+  strong { color: var(--text); font-weight: 700; }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); color: var(--accent); padding: 2px 7px; border-radius: 3px; font-size: 0.83em; border: 1px solid var(--border); }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #94a3b8; overflow-x: auto; margin: 16px 0; line-height: 1.6; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.87rem; }
+  .data-table th { background: var(--surface2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-weight: 700; font-size: 0.83rem; }
+
+  /* TCP VS UDP */
+  .protocol-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .protocol-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .protocol-card.tcp { border-top: 3px solid var(--accent); }
+  .protocol-card.udp { border-top: 3px solid var(--accent2); }
+  .protocol-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .protocol-card.tcp .protocol-name{color:var(--accent)}.protocol-card.udp .protocol-name{color:var(--accent2)}
+  .protocol-type { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .protocol-card li { font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+
+  /* SEGMENTS */
+  .segment-diagram { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin: 12px 0; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .seg-field { flex: 1; padding: 10px 8px; text-align: center; border-right: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+  .seg-field:last-child { border-right: none; }
+  .seg-field.highlight { color: var(--accent); background: var(--surface2); }
+
+  /* PORT RANGES */
+  .port-ranges { display: flex; flex-direction: column; gap: 3px; margin: 16px 0; }
+  .port-range { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; }
+  .port-range .range { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 11px; min-width: 130px; }
+  .port-range .desc { color: #94a3b8; }
+
+  /* OSI STACK */
+  .osi-full-stack { margin: 20px 0; display: flex; flex-direction: column; gap: 2px; }
+  .osi-row { display: grid; grid-template-columns: 36px 140px 1fr 160px; align-items: center; border-radius: 4px; overflow: hidden; font-size: 0.85rem; }
+  .osi-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; text-align: center; padding: 11px 0; color: #000; }
+  .osi-name { padding: 11px 14px; font-weight: 600; background: var(--surface2); border-left: 1px solid var(--border); }
+  .osi-func { padding: 11px 14px; color: var(--muted); font-size: 0.8rem; background: var(--surface); border-left: 1px solid var(--border); }
+  .osi-hw { padding: 11px 14px; color: var(--muted); font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; background: var(--surface); border-left: 1px solid var(--border); text-align: right; }
+  .r7 .osi-num{background:#6366f1}.r6 .osi-num{background:#8b5cf6}.r5 .osi-num{background:#7c3aed}
+  .r4 .osi-num{background:#0ea5e9}.r3 .osi-num{background:#06b6d4}.r2 .osi-num{background:#10b981}.r1 .osi-num{background:#f59e0b}
+
+  /* ENCAP */
+  .encap-visual { margin: 20px 0; display: flex; flex-direction: column; gap: 6px; }
+  .encap-row { display: flex; align-items: center; gap: 10px; }
+  .encap-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); width: 80px; flex-shrink: 0; text-align: right; }
+  .encap-bar { height: 32px; border-radius: 4px; display: flex; align-items: center; padding: 0 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: #000; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.87rem; color: #94a3b8; }
+  .callout.warning{border-color:var(--accent2)}.callout.success{border-color:var(--green)}.callout.tip{border-color:var(--yellow)}
+  .callout strong { display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .callout.warning strong{color:var(--accent2)}.callout.success strong{color:var(--green)}.callout.tip strong{color:var(--yellow)}
+
+  /* SOC CARDS */
+  .soc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 16px 0; }
+  .soc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; transition: border-color 0.2s, transform 0.2s; }
+  .soc-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+  .soc-card .card-title { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; font-weight: 700; }
+  .soc-card .card-layer { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 8px; }
+  .soc-card p { font-size: 0.8rem; color: var(--muted); margin: 0; line-height: 1.6; }
+
+  /* TAKEAWAYS */
+  .takeaways { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 32px 0; }
+  .takeaways h3 { color: var(--accent); margin-bottom: 16px; }
+  .takeaway-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 0.87rem; color: #94a3b8; }
+  .takeaway-item::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+  /* FOOTER */
+  .footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .footer-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2; }
+  .footer-meta a { color: var(--accent); text-decoration: none; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 700; }
+  .footer-brand span { color: var(--accent); }
+  .next-part { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-align: right; text-decoration: none; display: block; transition: opacity 0.2s; }
+  .next-part:hover { opacity: 0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .container > * { animation: fadeIn 0.5s ease both; }
+
+  @media(max-width:600px){
+    .protocol-compare{grid-template-columns:1fr}.osi-row{grid-template-columns:36px 1fr 1fr}.osi-hw{display:none}
+    .soc-grid{grid-template-columns:1fr}.footer-nav{flex-direction:column}.next-part{text-align:left}.star-banner{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-logo" href="../index.html">Clear<span>Signal</span></a>
+      <a class="nav-home" href="../index.html">⌂ Home</a>
+    </div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </nav>
+
+  <header class="header">
+    <div class="series-tag">// Network+ Series — 02</div>
+    <div class="part-badge">PART 2 OF OSI MODEL SERIES</div>
+    <h1>OSI Model:<br><span>Network to Application</span></h1>
+    <div class="subtitle">
+      Author: Khalil Djemai — Aspiring SOC Analyst | Ex-Full Stack Developer<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="nav-pills">
+    <a class="pill" href="01-osi-model.html">Part 1: L1-L2 ✓</a>
+    <div class="pill active">Part 2: L3-L7 ←</div>
+    <div class="pill">Part 3: Coming soon</div>
+  </div>
+
+  <div class="star-banner">
+    <div class="star-banner-text">Found this useful? <strong>Star the repository</strong> to support the project and help others find it.</div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </div>
+
+  <div class="recap">
+    <div class="recap-title">// Quick recap from Part 1</div>
+    <div class="recap-item"><span class="layer-badge l1-bg">L1</span>Physical transmission — cables, UTP, signals, binary</div>
+    <div class="recap-item"><span class="layer-badge l2-bg">L2</span>Local delivery — NICs, MAC addresses, Ethernet frames, switches</div>
+  </div>
+
+  <section>
+    <h2>Data Link Sublayers (L2 Revisited)</h2>
+    <p>Before going up the stack, L2 is split into two sublayers:</p>
+    <table class="data-table">
+      <thead><tr><th>Sublayer</th><th>Name</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>LLC</td><td>Logical Link Control</td><td>The NIC communicates with the OS via drivers — provides multiple network protocol support and flow control</td></tr>
+        <tr><td>MAC</td><td>Media Access Control</td><td>Creates the MAC address, attaches it to the frame with the receiver address, checks FCS, ensures frames travel correctly</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Why MACs Aren't Enough</h2>
+    <p>MACs work for small local networks. As networks grow larger, broadcasting MAC addresses floods and blocks the entire network. We need <strong>logical addressing</strong> — which ignores hardware and lets us break networks into <strong>subnets</strong>.</p>
+    <p>The most famous implementation: <strong>TCP/IP — Transmission Control Protocol / Internet Protocol</strong>.</p>
+  </section>
+
+  <section>
+    <h2>L3 — Network Layer</h2>
+    <h3>// IP Addressing</h3>
+    <p><strong>IP</strong> ensures packets reach their destination by assigning a unique IP address to every device. Unlike MACs, IP addresses are stored in <strong>software</strong> — not hardware.</p>
+    <pre>192 . 168 . 4 . 232
+ 8bit  8bit  8bit  8bit  =  32 bits total</pre>
+    <h3>// Routing</h3>
+    <p>Each router receives a frame, strips it, reads the packet to find the next destination, creates a new frame, and forwards it. This repeats until data arrives at the destination subnet.</p>
+    <h3>// Frames vs Packets</h3>
+    <pre>[ FRAME — L2 ]
+  └── Destination MAC | Source MAC | Type | [ PACKET — L3 ] | FCS
+                                              └── IP Header | Data</pre>
+    <div class="callout tip"><strong>// Subnetting</strong>IP addresses are divided into subnets to break large networks into manageable, secure segments. Dedicated subnetting writeup coming soon.</div>
+  </section>
+
+  <section>
+    <h2>L4 — Transport Layer</h2>
+    <h3>// Segmentation</h3>
+    <p>Data is often larger than a single frame can carry (Ethernet max: 1500 bytes). L4 chops it into <strong>segments</strong> and the receiving side reassembles them in order, requesting retransmission of anything missing.</p>
+    <h3>// TCP vs UDP</h3>
+    <div class="protocol-compare">
+      <div class="protocol-card tcp">
+        <div class="protocol-name">TCP</div>
+        <div class="protocol-type">Connection-Oriented</div>
+        <ul>
+          <li>Verifies connection before sending</li>
+          <li>Guarantees delivery and ordering</li>
+          <li>Used for: web, email, file transfers</li>
+          <li>Slower but reliable</li>
+        </ul>
+      </div>
+      <div class="protocol-card udp">
+        <div class="protocol-name">UDP</div>
+        <div class="protocol-type">Connectionless</div>
+        <ul>
+          <li>Fires without verifying target is ready</li>
+          <li>No delivery guarantee</li>
+          <li>Used for: VoIP, video, DNS</li>
+          <li>Faster but unreliable</li>
+        </ul>
+      </div>
+    </div>
+    <h4>TCP Segment</h4>
+    <div class="segment-diagram">
+      <div class="seg-field highlight">Src Port</div><div class="seg-field highlight">Dst Port</div>
+      <div class="seg-field">Seq Num</div><div class="seg-field">Ack Num</div>
+      <div class="seg-field">Flags</div><div class="seg-field">Data</div>
+    </div>
+    <h4>UDP Datagram</h4>
+    <div class="segment-diagram">
+      <div class="seg-field highlight">Src Port</div><div class="seg-field highlight">Dst Port</div>
+      <div class="seg-field">Length</div><div class="seg-field">Checksum</div><div class="seg-field">Data</div>
+    </div>
+    <div class="callout"><strong>// Key Difference</strong>UDP has no sequence number or acknowledgment — fires and forgets. Fast, but exploitable.</div>
+    <h3>// Ports</h3>
+    <p>A port is a logical number between <strong>1 and 65,536</strong> telling the OS which application should receive incoming data. IP gets you to the building — the port tells you which apartment.</p>
+    <div class="port-ranges">
+      <div class="port-range"><span class="range">0 – 1,023</span><span class="desc">Well-known — HTTP: 80, HTTPS: 443, SSH: 22, DNS: 53</span></div>
+      <div class="port-range"><span class="range">1,024 – 49,151</span><span class="desc">Registered — assigned to specific applications</span></div>
+      <div class="port-range"><span class="range">49,152 – 65,535</span><span class="desc">Dynamic / ephemeral — temporary, assigned per session</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>L5 — Session Layer</h2>
+    <p>Manages communication sessions between applications on different systems — initiates, accepts, and closes sessions.</p>
+    <div class="callout success"><strong>// SOC Tip</strong>Run <code>netstat -a</code> on Windows to list all existing sessions — useful for spotting unexpected connections during an investigation.</div>
+  </section>
+
+  <section>
+    <h2>L6 — Presentation Layer</h2>
+    <p>Handles <strong>data translation</strong> — encoding, decoding, and encryption/decryption between the network and applications. One of the blurriest layers in practice, with many functions overlapping L7.</p>
+  </section>
+
+  <section>
+    <h2>L7 — Application Layer</h2>
+    <p>Not the apps themselves — the <strong>OS built-in APIs</strong> that make applications network-aware. Provides encryption, authentication, and data presentation tools.</p>
+  </section>
+
+  <section>
+    <h2>The Complete OSI Stack</h2>
+    <div class="osi-full-stack">
+      <div class="osi-row r7"><div class="osi-num">L7</div><div class="osi-name">Application</div><div class="osi-func">APIs, network-aware OS code</div><div class="osi-hw">—</div></div>
+      <div class="osi-row r6"><div class="osi-num">L6</div><div class="osi-name">Presentation</div><div class="osi-func">Data conversion, encryption</div><div class="osi-hw">—</div></div>
+      <div class="osi-row r5"><div class="osi-num">L5</div><div class="osi-name">Session</div><div class="osi-func">Session tracking & management</div><div class="osi-hw">—</div></div>
+      <div class="osi-row r4"><div class="osi-num">L4</div><div class="osi-name">Transport</div><div class="osi-func">Segmentation & reassembly</div><div class="osi-hw">TCP / UDP</div></div>
+      <div class="osi-row r3"><div class="osi-num">L3</div><div class="osi-name">Network</div><div class="osi-func">IP addressing & routing</div><div class="osi-hw">Router</div></div>
+      <div class="osi-row r2"><div class="osi-num">L2</div><div class="osi-name">Data Link</div><div class="osi-func">MAC addressing & frames</div><div class="osi-hw">Switch + NIC</div></div>
+      <div class="osi-row r1"><div class="osi-num">L1</div><div class="osi-name">Physical</div><div class="osi-func">Signal transmission</div><div class="osi-hw">Hub + Cables</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Encapsulation & Decapsulation</h2>
+    <p>As data passes <strong>down</strong> the stack, each layer wraps it with its own header. The receiver <strong>strips</strong> those headers going back up — each layer only reads its own header.</p>
+    <div class="encap-visual">
+      <div class="encap-row"><div class="encap-label">L7-L5</div><div class="encap-bar" style="background:#6366f1;width:40%">Application Data</div></div>
+      <div class="encap-row"><div class="encap-label">L4</div><div class="encap-bar" style="background:#0ea5e9;width:55%">TCP/UDP Header + Data</div></div>
+      <div class="encap-row"><div class="encap-label">L3</div><div class="encap-bar" style="background:#06b6d4;width:70%">IP Header + Segment</div></div>
+      <div class="encap-row"><div class="encap-label">L2</div><div class="encap-bar" style="background:#10b981;width:85%">MAC + IP Header + Data + FCS</div></div>
+      <div class="encap-row"><div class="encap-label">L1</div><div class="encap-bar" style="background:#f59e0b;width:100%">101010110100... (bits on the wire)</div></div>
+    </div>
+    <div class="callout"><strong>// The Elegant Part</strong>Every layer only reads its own header and passes the rest up — this is what makes OSI truly modular.</div>
+  </section>
+
+  <section>
+    <h2>SOC Analyst Relevance</h2>
+    <div class="soc-grid">
+      <div class="soc-card"><div class="card-title">IP Spoofing</div><div class="card-layer">L3 — Network</div><p>Attackers forge source IPs to disguise origin or bypass filters.</p></div>
+      <div class="soc-card"><div class="card-title">Port Scanning</div><div class="card-layer">L4 — Transport</div><p>Tools like Nmap discover open services. Unusual port activity signals reconnaissance.</p></div>
+      <div class="soc-card"><div class="card-title">TCP SYN Flood</div><div class="card-layer">L4 — Transport</div><p>Massive SYN requests without completing handshakes exhaust server resources.</p></div>
+      <div class="soc-card"><div class="card-title">Session Hijacking</div><div class="card-layer">L5 — Session</div><p>Attacker takes over an authenticated session mid-communication.</p></div>
+      <div class="soc-card"><div class="card-title">App Layer Attacks</div><div class="card-layer">L7 — Application</div><p>SQL injection, XSS, API abuse. Your dev background gives you a serious edge here.</p></div>
+      <div class="soc-card"><div class="card-title">UDP Floods</div><div class="card-layer">L4 — Transport</div><p>UDP's connectionless nature makes it easy to flood targets with no built-in protection.</p></div>
+    </div>
+  </section>
+
+  <div class="takeaways">
+    <h3>// Key Takeaways</h3>
+    <div class="takeaway-item">MACs work locally — IP addresses enable communication across large networks</div>
+    <div class="takeaway-item">Routers strip and rebuild frames at each hop — they only care about IP addresses</div>
+    <div class="takeaway-item">TCP is reliable and connection-oriented; UDP is fast and connectionless</div>
+    <div class="takeaway-item">Ports tell the OS which application should receive incoming data (1–65,536)</div>
+    <div class="takeaway-item">Encapsulation wraps data going down the stack; decapsulation unwraps it going up</div>
+    <div class="takeaway-item">Most real-world attacks target L3 and above — understanding the full stack is fundamental</div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      Series: ClearSignal — Network+ Notes<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      Author: Khalil Djemai &nbsp;·&nbsp;
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-brand">Clear<span>Signal</span></div>
+      <a class="next-part" href="../index.html">Next →<br>03 - Network Topologies<br>Coming soon</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
