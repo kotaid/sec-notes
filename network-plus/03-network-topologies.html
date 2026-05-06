@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 - Network Topologies | ClearSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+    --accent: #00d4ff; --accent2: #ff6b35; --text: #e2e8f0; --muted: #64748b;
+    --green: #10b981; --yellow: #f59e0b; --purple: #7c3aed;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 60px 24px 120px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-home { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; }
+  .nav-home:hover { color: var(--accent); border-color: var(--accent); }
+  .star-btn { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s; letter-spacing: 0.05em; }
+  .star-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.08); }
+  .star-btn .star-icon { font-size: 14px; transition: transform 0.2s; }
+  .star-btn:hover .star-icon { transform: scale(1.3) rotate(15deg); }
+  .star-btn .star-label { font-weight: 700; }
+
+  /* STAR BANNER */
+  .star-banner { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin-bottom: 48px; flex-wrap: wrap; gap: 12px; }
+  .star-banner-text { font-size: 0.87rem; color: #94a3b8; }
+  .star-banner-text strong { color: var(--text); }
+
+  /* HEADER */
+  .header { border-left: 3px solid var(--accent); padding-left: 20px; margin-bottom: 60px; }
+  .series-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; line-height: 1.8; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 52px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); flex-shrink: 0; }
+  h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 28px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+  p { font-size: 0.93rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.8; }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 0.91rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.7; }
+  strong { color: var(--text); font-weight: 700; }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); color: var(--accent); padding: 2px 7px; border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border); }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.87rem; overflow-x: auto; display: block; }
+  .data-table th { background: var(--surface2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .data-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-weight: 700; font-size: 0.83rem; white-space: nowrap; }
+
+  /* TOPOLOGY CARDS */
+  .topology-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 20px 0; }
+  .topology-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; transition: border-color 0.2s, transform 0.2s; }
+  .topology-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .topology-card .topo-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .topology-card .topo-status { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .topology-card p { font-size: 0.82rem; color: var(--muted); margin: 0; line-height: 1.6; }
+  .topology-card .weakness { font-size: 0.8rem; color: var(--accent2); margin-top: 8px; display: flex; gap: 6px; align-items: flex-start; }
+  .topology-card .weakness::before { content: '⚠'; flex-shrink: 0; }
+
+  /* TIER MODEL */
+  .tier-model { margin: 20px 0; display: flex; flex-direction: column; gap: 3px; }
+  .tier { display: flex; align-items: center; border-radius: 4px; overflow: hidden; }
+  .tier-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; width: 36px; text-align: center; padding: 12px 0; color: #000; flex-shrink: 0; }
+  .tier-name { padding: 12px 16px; font-size: 0.88rem; font-weight: 600; flex: 1; background: var(--surface2); border-left: 1px solid var(--border); }
+  .tier-desc { padding: 12px 16px; font-size: 0.78rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; background: var(--surface); border-left: 1px solid var(--border); min-width: 200px; text-align: right; }
+  .t-core .tier-num { background: #6366f1; }
+  .t-dist .tier-num { background: #0ea5e9; }
+  .t-access .tier-num { background: #10b981; }
+
+  /* CABLE TYPES */
+  .cable-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .cable-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; }
+  .cable-card.copper { border-top: 3px solid var(--yellow); }
+  .cable-card.fiber { border-top: 3px solid var(--accent); }
+  .cable-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+  .cable-card.copper .cable-title { color: var(--yellow); }
+  .cable-card.fiber .cable-title { color: var(--accent); }
+  .cable-card li { font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.87rem; color: #94a3b8; }
+  .callout.warning { border-color: var(--accent2); }
+  .callout.success { border-color: var(--green); }
+  .callout.tip { border-color: var(--yellow); }
+  .callout strong { display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .callout.warning strong { color: var(--accent2); }
+  .callout.success strong { color: var(--green); }
+  .callout.tip strong { color: var(--yellow); }
+
+  /* SOC SECTION */
+  .soc-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; margin: 32px 0; }
+  .soc-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .soc-section p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 12px; }
+  .soc-section p:last-child { margin-bottom: 0; }
+
+  /* TAKEAWAYS */
+  .takeaways { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 32px 0; }
+  .takeaways h3 { color: var(--accent); margin-bottom: 16px; font-size: 11px; }
+  .takeaway-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; font-size: 0.88rem; color: #94a3b8; }
+  .takeaway-item::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+
+  /* FOOTER */
+  .footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .footer-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2; }
+  .footer-meta a { color: var(--accent); text-decoration: none; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 700; }
+  .footer-brand span { color: var(--accent); }
+  .next-part { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-align: right; text-decoration: none; display: block; transition: opacity 0.2s; }
+  .next-part:hover { opacity: 0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .container > * { animation: fadeIn 0.5s ease both; }
+
+  @media(max-width:600px){
+    .topology-grid{grid-template-columns:1fr} .cable-grid{grid-template-columns:1fr}
+    .tier-desc{display:none} .footer-nav{flex-direction:column} .next-part{text-align:left}
+    .star-banner{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-logo" href="../home.html">Clear<span>Signal</span></a>
+      <a class="nav-home" href="../home.html">⌂ Home</a>
+    </div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </nav>
+
+  <header class="header">
+    <div class="series-tag">// Network+ Series — 03</div>
+    <h1>Network Topologies:<br><span>How Networks Are Structured</span></h1>
+    <div class="subtitle">
+      Author: Khalil Djemai — Aspiring SOC Analyst | Ex-Full Stack Developer<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="star-banner">
+    <div class="star-banner-text">Found this useful? <strong>Star the repository</strong> to support the project and help others find it.</div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </div>
+
+  <section>
+    <h2>What Is a Network Topology?</h2>
+    <p>Topologies are <strong>diagrams of how devices are connected</strong>. Every network — including wireless ones — implements a topology, just in different forms. A <strong>network technology</strong> is the practical application of a topology combined with other critical tools — it provides the method to get data from one computer to another.</p>
+  </section>
+
+  <section>
+    <h2>Old (Legacy) Topologies</h2>
+    <p>Mostly obsolete today but important to understand historically and conceptually.</p>
+
+    <div class="topology-grid">
+      <div class="topology-card">
+        <div class="topo-name">Bus</div>
+        <div class="topo-status">// Obsolete</div>
+        <p>All devices connected with a single wire in a straight line. Data sent on the whole bus — every device sees every transmission. Required termination on both sides.</p>
+        <div class="weakness">Cable break reflects data — entire network goes down.</div>
+      </div>
+
+      <div class="topology-card">
+        <div class="topo-name">Ring</div>
+        <div class="topo-status">// Obsolete</div>
+        <p>Data moves in a circle with no end to the cable — no termination needed.</p>
+        <div class="weakness">Cable break = data gets lost, network fails.</div>
+      </div>
+
+      <div class="topology-card">
+        <div class="topo-name">Star (Hub & Spoke)</div>
+        <div class="topo-status">// Obsolete</div>
+        <p>Devices connected via a Hub as a central box. Offered fault tolerance — one cable breaking didn't take down the whole network.</p>
+        <div class="weakness">Hard to redesign existing networks and more expensive.</div>
+      </div>
+
+      <div class="topology-card">
+        <div class="topo-name">Hybrid</div>
+        <div class="topo-status">// Dominant today</div>
+        <p>Combines physical topology with logical topology. <strong>Star-Bus</strong> reigns as the undisputed standard of wired topologies. Star-Ring lost market share.</p>
+      </div>
+
+      <div class="topology-card">
+        <div class="topo-name">Mesh</div>
+        <div class="topo-status">// Wireless networks</div>
+        <p>Each device connects to every other via one or more routes. <strong>Partially meshed</strong> — at least two devices have redundant connections. <strong>Fully meshed</strong> — every device connects to every other directly.</p>
+      </div>
+
+      <div class="topology-card">
+        <div class="topo-name">Point-to-Point</div>
+        <div class="topo-status">// Simplest</div>
+        <p>Connects two network nodes directly. The simplest topology possible.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Logical Topologies</h2>
+    <p>Logical topologies describe how data flows through a network regardless of physical layout.</p>
+
+    <h3>// 3-Tier Hierarchical Model</h3>
+    <p>The most common enterprise network model:</p>
+    <div class="tier-model">
+      <div class="tier t-core">
+        <div class="tier-num">C</div>
+        <div class="tier-name">Core Layer</div>
+        <div class="tier-desc">High-speed backbone, internet connection</div>
+      </div>
+      <div class="tier t-dist">
+        <div class="tier-num">D</div>
+        <div class="tier-name">Distribution Layer</div>
+        <div class="tier-desc">Routing, policies, filtering</div>
+      </div>
+      <div class="tier t-access">
+        <div class="tier-num">A</div>
+        <div class="tier-name">Access Layer</div>
+        <div class="tier-desc">End devices — PCs, printers, phones</div>
+      </div>
+    </div>
+
+    <h3>// Collapsed Core Model</h3>
+    <p>Core and distribution layers <strong>collapsed into a single device</strong>. Used in smaller networks — more cost effective but less scalable.</p>
+
+    <h3>// Spine and Leaf</h3>
+    <p>Modern data center topology. Reduces latency and hop count. Traffic flows <strong>east to west only</strong> — every leaf connects to every spine, no spine-to-spine or leaf-to-leaf connections. Highly predictable and scalable.</p>
+  </section>
+
+  <section>
+    <h2>Network Cabling</h2>
+    <p>All network cables fall into two main categories:</p>
+
+    <div class="cable-grid">
+      <div class="cable-card copper">
+        <div class="cable-title">⚡ Copper Cabling</div>
+        <ul>
+          <li>Coaxial copper</li>
+          <li>Twinaxial cable</li>
+          <li>Twisted pair (STP/UTP)</li>
+        </ul>
+      </div>
+      <div class="cable-card fiber">
+        <div class="cable-title">💡 Fiber Optic</div>
+        <ul>
+          <li>Multimode fiber (MMF)</li>
+          <li>Single-mode fiber (SMF)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>// Coaxial Copper</h3>
+    <p>Center wire and braided metal shield share a <strong>common axis</strong> — hence "coaxial". The shield protects data from <strong>EMI (electromagnetic interference)</strong>. Has a <strong>Radio Guide (RG) rating</strong> for characteristic impedance. Uses <strong>BNC connectors</strong> and <strong>F-type connectors</strong> for cable modems.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Rating</th><th>Ohms</th><th>Use</th><th>Connector</th></tr></thead>
+      <tbody>
+        <tr><td>RG-59</td><td>75</td><td>Cable TV</td><td>F Type</td></tr>
+        <tr><td>RG-6</td><td>75</td><td>Cable TV / ISP</td><td>F Type</td></tr>
+      </tbody>
+    </table>
+
+    <h3>// Twinaxial Cable</h3>
+    <p>Two central copper conductors in a single shield. Used as a short-distance substitute for fiber between rack equipment — called a <strong>DAC (Direct Attached Cable)</strong>.</p>
+
+    <h3>// Twisted Pair Cable</h3>
+    <p>The <strong>most common cabling type</strong> in modern networks. Pairs work as a team — transmitting and receiving. Twisting reduces <strong>crosstalk</strong>.</p>
+
+    <h4>STP — Shielded Twisted Pairs</h4>
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>F/UTP</td><td>Foil shields entire cable; inside wires are like UTP</td></tr>
+        <tr><td>S/UTP</td><td>Braid screen shields entire cable; inside wires are like UTP</td></tr>
+        <tr><td>SF/UTP</td><td>Braid screen and foil shield entire cable; inside wires are like UTP</td></tr>
+        <tr><td>S/FTP</td><td>Braid screen shields entire cable; foil shields each wire pair inside</td></tr>
+        <tr><td>F/FTP</td><td>Foil screen shields entire cable; foil shields each wire pair inside</td></tr>
+        <tr><td>U/FTP</td><td>No overall shielding; each pair inside shielded with foil screens</td></tr>
+      </tbody>
+    </table>
+
+    <h4>UTP — Unshielded Twisted Pairs</h4>
+    <p>Twisted pairs surrounded by a plastic jacket that doesn't prevent EMI — acts as a slight skin only.</p>
+
+    <h4>Cable Categories & Speeds</h4>
+    <table class="data-table">
+      <thead><tr><th>Cat</th><th>Max Frequency</th><th>Max Bandwidth</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Cat 3</td><td>16 MHz</td><td>16 Mbps</td><td>Recognized</td></tr>
+        <tr><td>Cat 4</td><td>20 MHz</td><td>20 Mbps</td><td>No longer recognized</td></tr>
+        <tr><td>Cat 5</td><td>100 MHz</td><td>100 Mbps</td><td>No longer recognized</td></tr>
+        <tr><td>Cat 5e</td><td>100 MHz</td><td>1 Gbps</td><td>Recognized</td></tr>
+        <tr><td>Cat 6</td><td>250 MHz</td><td>10 Gbps</td><td>Recognized</td></tr>
+        <tr><td>Cat 6a</td><td>500 MHz</td><td>10 Gbps</td><td>Recognized</td></tr>
+        <tr><td>Cat 7</td><td>600 MHz</td><td>10+ Gbps</td><td>Not recognized</td></tr>
+        <tr><td>Cat 7a</td><td>1000 MHz</td><td>40-100 Gbps</td><td>Not recognized</td></tr>
+        <tr><td>Cat 8</td><td>2000 MHz</td><td>25-40 Gbps</td><td>Not recognized</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip"><strong>// Bandwidth Encoding</strong>Modern encoding schemes allow Cat 5e to handle up to 1 Gbps despite a 100 MHz rating — more bits squeezed into the same signal.</div>
+
+    <p><strong>Connectors:</strong> RJ-11 (telephone, 2 pairs) and RJ-45/8P8C (current wired networks, 4 pairs).</p>
+
+    <h3>// Fiber Optic Cabling</h3>
+    <p>Transmits <strong>light rather than electricity</strong> — suitable for long distances (10s of km) and high-EMI environments. Structure: glass fiber core → cladding → buffer → insulating jacket. Two fibers connected = <strong>duplex fiber-optic cabling</strong> (one send, one receive).</p>
+
+    <table class="data-table">
+      <thead><tr><th>Type</th><th>Light Source</th><th>Wavelength</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>MMF (Multimode)</td><td>LED</td><td>850nm / 1300nm</td><td>Shorter distances, data centers</td></tr>
+        <tr><td>SMF (Single-mode)</td><td>Laser</td><td>1310nm / 1550nm</td><td>Long distances, ultra-high speeds</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>// Modal Distortion</strong>MMF uses LEDs and suffers from modal distortion. SMF uses laser light and prevents this — enabling phenomenally higher speeds over longer distances.</div>
+
+    <h4>Fire Ratings</h4>
+    <table class="data-table">
+      <thead><tr><th>Rating</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>PVC</td><td>No significant fire protection — lots of smoke and fumes</td></tr>
+        <tr><td>Plenum</td><td>Named after plenum spaces — much less smoke, the standard today</td></tr>
+        <tr><td>Riser</td><td>For vertical runs between floors — less protection than plenum</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>IEEE 802 Standards</h2>
+    <p>The <strong>IEEE 802 committee</strong> defines network technology standards, split into subcommittees:</p>
+    <table class="data-table">
+      <thead><tr><th>Standard</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>802.1</td><td>Higher Layer LAN Protocols (802.1X for port-based access control)</td></tr>
+        <tr><td>802.3</td><td>Ethernet (802.3ae for 10-Gigabit Ethernet)</td></tr>
+        <tr><td>802.11</td><td>Wireless LAN (Wi-Fi)</td></tr>
+        <tr><td>802.15</td><td>Wireless Personal Area Network (WPAN)</td></tr>
+        <tr><td>802.18</td><td>Radio Regulatory Technical Advisory Group</td></tr>
+        <tr><td>802.19</td><td>Wireless Coexistence Working Group</td></tr>
+        <tr><td>802.24</td><td>Vertical Applications Technical Advisory Group</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="soc-section">
+    <h3>// SOC Analyst Relevance</h3>
+    <p>While memorizing every cable specification isn't required, having a working knowledge of network infrastructure is genuinely valuable in cybersecurity.</p>
+    <p>On the offensive side, red teamers performing physical security assessments often rely on this knowledge — from crimping custom cables to planting rogue devices on a target network. On the defensive side, as the saying goes: you can't defend what you don't understand.</p>
+    <p>As a SOC analyst working in an organization with a local network, understanding its physical topology helps you detect anomalies and identify unauthorized devices. Knowing the IP ranges, subnets, and expected devices on a network makes anything unexpected stand out immediately.</p>
+    <p>Physical layer issues can also trigger security alerts in unexpected ways — a broken cable can cause ARP floods or a switch going offline, which may look like a service degradation attack if you don't understand the underlying infrastructure.</p>
+    <p>Topology knowledge also directly aids incident response. Knowing whether a network uses a flat, star, or hierarchical model tells you instantly how traffic flows and where to look during an investigation. A segmented network behaves very differently from a flat one when you're tracing lateral movement.</p>
+    <p>While network redesign falls under security engineering, a SOC analyst who understands topology can flag segmentation weaknesses during investigations — for example noting that a compromised device has unrestricted access to critical systems due to a flat network structure. That observation goes into the incident report and becomes actionable for the right team.</p>
+    <p>Ultimately, even if you don't memorize every spec, keep these as references. The real value comes from hands-on experience — building your own lab, configuring switches, understanding your network's topology. That's where knowledge becomes intuition.</p>
+  </div>
+
+  <div class="takeaways">
+    <h3>// Key Takeaways</h3>
+    <div class="takeaway-item">Every network implements a topology — physical or logical or both</div>
+    <div class="takeaway-item">Star-Bus hybrid is the dominant wired topology today</div>
+    <div class="takeaway-item">Enterprise networks use a 3-tier hierarchical model — Core, Distribution, Access</div>
+    <div class="takeaway-item">Copper cables are common and affordable — fiber is faster and EMI-immune over long distances</div>
+    <div class="takeaway-item">Cat 5e and above are the current standard for twisted pair cabling</div>
+    <div class="takeaway-item">Topology knowledge helps SOC analysts investigate incidents and flag infrastructure weaknesses</div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      Series: ClearSignal — Network+ Notes<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      Author: Khalil Djemai &nbsp;·&nbsp;
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-brand">Clear<span>Signal</span></div>
+      <a class="next-part" href="04-ethernet-basics.html">Next →<br>04 - Ethernet Basics<br>How Ethernet works at a deeper level</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
