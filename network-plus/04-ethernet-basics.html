@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 - Ethernet Basics | ClearSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+    --accent: #00d4ff; --accent2: #ff6b35; --text: #e2e8f0; --muted: #64748b;
+    --green: #10b981; --yellow: #f59e0b; --purple: #7c3aed;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 60px 24px 120px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-home { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; }
+  .nav-home:hover { color: var(--accent); border-color: var(--accent); }
+  .star-btn { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s; letter-spacing: 0.05em; }
+  .star-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.08); }
+  .star-btn .star-icon { font-size: 14px; transition: transform 0.2s; }
+  .star-btn:hover .star-icon { transform: scale(1.3) rotate(15deg); }
+  .star-btn .star-label { font-weight: 700; }
+
+  /* STAR BANNER */
+  .star-banner { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin-bottom: 48px; flex-wrap: wrap; gap: 12px; }
+  .star-banner-text { font-size: 0.87rem; color: #94a3b8; }
+  .star-banner-text strong { color: var(--text); }
+
+  /* HEADER */
+  .header { border-left: 3px solid var(--accent); padding-left: 20px; margin-bottom: 60px; }
+  .series-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; line-height: 1.8; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 52px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); flex-shrink: 0; }
+  h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 28px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+  p { font-size: 0.93rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.8; }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 0.91rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.7; }
+  strong { color: var(--text); font-weight: 700; }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); color: var(--accent); padding: 2px 7px; border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border); }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.87rem; display: block; overflow-x: auto; }
+  .data-table th { background: var(--surface2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .data-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-weight: 700; font-size: 0.83rem; white-space: nowrap; }
+
+  /* SPEC CARDS */
+  .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+  .spec-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .spec-card.copper { border-top: 3px solid var(--yellow); }
+  .spec-card.fiber { border-top: 3px solid var(--accent); }
+  .spec-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; margin-bottom: 14px; }
+  .spec-card.copper .spec-title { color: var(--yellow); }
+  .spec-card.fiber .spec-title { color: var(--accent); }
+  .spec-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; gap: 12px; }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-key { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+  .spec-val { color: var(--text); text-align: right; font-size: 0.82rem; }
+
+  /* CSMA/CD FLOW */
+  .flow { display: flex; flex-direction: column; gap: 3px; margin: 20px 0; }
+  .flow-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 0.87rem; color: #94a3b8; }
+  .flow-step .step-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); font-weight: 700; flex-shrink: 0; width: 24px; }
+  .flow-connector { text-align: center; color: var(--muted); font-size: 12px; margin: 0 auto; }
+
+  /* SWITCH DIAGRAM */
+  .switch-steps { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; counter-reset: switch-counter; }
+  .switch-step { display: flex; gap: 14px; align-items: flex-start; }
+  .switch-step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 700; flex-shrink: 0; width: 20px; margin-top: 2px; }
+  .switch-step-text { font-size: 0.88rem; color: #94a3b8; line-height: 1.6; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.87rem; color: #94a3b8; }
+  .callout.warning { border-color: var(--accent2); }
+  .callout.success { border-color: var(--green); }
+  .callout.tip { border-color: var(--yellow); }
+  .callout strong { display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .callout.warning strong { color: var(--accent2); }
+  .callout.success strong { color: var(--green); }
+  .callout.tip strong { color: var(--yellow); }
+
+  /* SOC SECTION */
+  .soc-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; margin: 32px 0; }
+  .soc-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .soc-section p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.8; }
+  .soc-section p:last-child { margin-bottom: 0; }
+
+  /* TAKEAWAYS */
+  .takeaways { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 32px 0; }
+  .takeaways h3 { color: var(--accent); margin-bottom: 16px; font-size: 11px; }
+  .takeaway-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; font-size: 0.88rem; color: #94a3b8; }
+  .takeaway-item::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+
+  /* FOOTER */
+  .footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .footer-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2; }
+  .footer-meta a { color: var(--accent); text-decoration: none; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 700; }
+  .footer-brand span { color: var(--accent); }
+  .next-part { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-align: right; text-decoration: none; display: block; transition: opacity 0.2s; }
+  .next-part:hover { opacity: 0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .container > * { animation: fadeIn 0.5s ease both; }
+
+  @media(max-width:600px){
+    .spec-grid{grid-template-columns:1fr}
+    .footer-nav{flex-direction:column} .next-part{text-align:left}
+    .star-banner{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-logo" href="../home.html">Clear<span>Signal</span></a>
+      <a class="nav-home" href="../home.html">⌂ Home</a>
+    </div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </nav>
+
+  <header class="header">
+    <div class="series-tag">// Network+ Series — 04</div>
+    <h1>Ethernet Basics:<br><span>How Wired Networks Actually Work</span></h1>
+    <div class="subtitle">
+      Author: Khalil Djemai — Aspiring SOC Analyst | Ex-Full Stack Developer<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="star-banner">
+    <div class="star-banner-text">Found this useful? <strong>Star the repository</strong> to support the project and help others find it.</div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </div>
+
+  <section>
+    <h2>A Brief History of Ethernet</h2>
+    <p>Ethernet was developed by <strong>Xerox</strong>, then handed over to <strong>DIX (Digital Equipment Corporation / Intel / Xerox)</strong>, who passed it to the <strong>IEEE 802.3 committee</strong> — the working group that defines wired network standards to this day.</p>
+    <p>The committee defines standards that share the same basic frame type and access method. Here's a selection of its timeline:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Standard</th><th>Description</th><th>Year</th></tr></thead>
+      <tbody>
+        <tr><td>802.3i</td><td>10 Mbps Ethernet using twisted pair cabling</td><td>1990</td></tr>
+        <tr><td>802.3ab</td><td>Gigabit Ethernet over twisted pair</td><td>1999</td></tr>
+        <tr><td>802.3by</td><td>25 Gigabit Ethernet over fiber</td><td>2016</td></tr>
+        <tr><td>802.3cm</td><td>400 Gigabit Ethernet over multimode fiber</td><td>2020</td></tr>
+        <tr><td>802.3cu</td><td>100G and 400G Ethernet over single mode fiber using 100 Gbps lanes</td><td>2021</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>How Ethernet Transmits Data</h2>
+    <p>Ethernet uses <strong>data frames</strong> containing MAC addresses to identify computers, and <strong>CSMA/CD</strong> to determine which machine accesses the wire at any given time.</p>
+    <p>Using frames solves two critical problems: it prevents a single machine from monopolizing the network, and makes retransmitting lost data more efficient.</p>
+
+    <h3>// Frame Structure</h3>
+    <p>Building on the frame content from our OSI Model articles:</p>
+    <ul>
+      <li><strong>Preamble</strong> — a 7-byte series of alternating ones and zeroes followed by a 1-byte start frame delimiter. Sent before the frame to notify the receiving NIC that a frame is coming so it knows where it starts</li>
+      <li><strong>Type field</strong> — helps the receiving machine interpret data at a basic level — tells it whether the data is IPv4 or IPv6</li>
+      <li><strong>Pad</strong> — extra data added by the sending NIC to bring the frame up to the minimum size of <strong>64 bytes</strong>. Used all the time</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Early Ethernet — From Bus to Hybrid Star-Bus</h2>
+    <p>Early networks used a <strong>true-bus topology</strong> — every computer connected to the same cable. After 1990, networks moved to a <strong>hybrid-bus topology</strong> — a hub at the center repeating data to every connected device except the sender.</p>
+
+    <h3>// 10BASE-T (1990)</h3>
+    <p>The naming convention: <strong>10</strong> = speed in Mbps, <strong>BASE</strong> = baseband signal, <strong>T</strong> = twisted pair.</p>
+
+    <div class="spec-grid">
+      <div class="spec-card copper">
+        <div class="spec-title">10BASE-T — Copper</div>
+        <div class="spec-row"><span class="spec-key">Speed</span><span class="spec-val">10 Mbps</span></div>
+        <div class="spec-row"><span class="spec-key">Signal</span><span class="spec-val">Baseband</span></div>
+        <div class="spec-row"><span class="spec-key">Distance</span><span class="spec-val">100m hub to node</span></div>
+        <div class="spec-row"><span class="spec-key">Node limit</span><span class="spec-val">Max 1024 per hub</span></div>
+        <div class="spec-row"><span class="spec-key">Topology</span><span class="spec-val">Star-bus</span></div>
+        <div class="spec-row"><span class="spec-key">Cable</span><span class="spec-val">Cat 3+ UTP, RJ-45</span></div>
+      </div>
+      <div class="spec-card fiber">
+        <div class="spec-title">10BASE-FL — Fiber</div>
+        <div class="spec-row"><span class="spec-key">Speed</span><span class="spec-val">10 Mbps</span></div>
+        <div class="spec-row"><span class="spec-key">Signal</span><span class="spec-val">Baseband</span></div>
+        <div class="spec-row"><span class="spec-key">Distance</span><span class="spec-val">2000m hub to node</span></div>
+        <div class="spec-row"><span class="spec-key">Node limit</span><span class="spec-val">Max 1024 per hub</span></div>
+        <div class="spec-row"><span class="spec-key">Topology</span><span class="spec-val">Star-bus</span></div>
+        <div class="spec-row"><span class="spec-key">Cable</span><span class="spec-val">MMF 62.5/125μm, ST/SC</span></div>
+      </div>
+    </div>
+
+    <div class="callout tip"><strong>// Media Converter</strong>10BASE-T and 10BASE-FL are both star-bus Ethernet — a media converter can interconnect them.</div>
+
+    <h3>// Cabling & Connectors</h3>
+    <ul>
+      <li>Required <strong>Cat 3 or higher, 2-pair UTP</strong> — one pair to send, one to receive. Techs installed 4 pairs to be future-proof</li>
+      <li>Uses <strong>RJ-45 connectors</strong> — 8 pins, each connected to a specific wire using color coding</li>
+      <li>Two color coding standards: <strong>TIA/EIA 568A</strong> and <strong>TIA/EIA 568B</strong></li>
+    </ul>
+
+    <div class="callout"><strong>// Crimping</strong>Installing an RJ-45 connector onto a cable is called a crimp. The tool used is a crimper.</div>
+
+    <h3>// Duplex</h3>
+    <ul>
+      <li><strong>Half-duplex</strong> (older NICs) — either send or receive at a time, not both</li>
+      <li><strong>Full-duplex</strong> (modern NICs) — send and receive simultaneously</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>CSMA/CD — Collision Detection</h2>
+    <p>On bus and hybrid star-bus networks, <strong>CSMA/CD (Carrier Multiple Access with Collision Detection)</strong> determines which computer uses the shared cable at a given time.</p>
+
+    <div class="flow">
+      <div class="flow-step"><span class="step-num">01</span>Machines have equal access to the wire — assigned on a first-come basis</div>
+      <div class="flow-step"><span class="step-num">02</span>Two machines simultaneously detect the wire is free and both send a frame — collision occurs, both frames lost</div>
+      <div class="flow-step"><span class="step-num">03</span>NICs sense the overlapping signals and both stop transmitting</div>
+      <div class="flow-step"><span class="step-num">04</span>Each generates a short random waiting time — shorter wait sends first, the other waits for the wire to be free</div>
+    </div>
+
+    <div class="callout success"><strong>// Modern Solution</strong>Better technologies today — specifically switches — eliminate collisions entirely.</div>
+  </section>
+
+  <section>
+    <h2>Ethernet Switches</h2>
+    <p>Ethernet switches look like hubs but work completely differently. Think of a switch like a phone operator — handling every connection between two devices as if it's the only connection on the network, running at full speed.</p>
+
+    <div class="switch-steps">
+      <div class="switch-step"><span class="switch-step-num">1</span><span class="switch-step-text">Initially forwards all messages to every computer (like a hub)</span></div>
+      <div class="switch-step"><span class="switch-step-num">2</span><span class="switch-step-text">Registers every MAC address into a MAC table</span></div>
+      <div class="switch-step"><span class="switch-step-num">3</span><span class="switch-step-text">Starts filtering messages — creating point-to-point connections between specific devices</span></div>
+    </div>
+
+    <ul>
+      <li>Each port acts as its own <strong>collision domain</strong> — two nodes can send data simultaneously without collision</li>
+      <li>Switches can <strong>buffer frames</strong> — store them briefly if the destination port is busy</li>
+    </ul>
+
+    <h3>// Uplink Ports & Crossover Cables</h3>
+    <p>To avoid single points of failure and expand the network, switches have <strong>uplink ports</strong> for connecting to other switches. <strong>Crossover cables</strong> can connect switches or two PCs directly without a switch. In modern switches, any normal port works without special cabling.</p>
+  </section>
+
+  <section>
+    <h2>Switching Loops & STP</h2>
+    <p><strong>Switching loops</strong> occur when two switches are connected in a way that creates redundant connections — causing frames to circulate endlessly and flood the network.</p>
+
+    <h3>// STP — Spanning Tree Protocol</h3>
+    <ul>
+      <li>Switches send <strong>BPDUs (Bridge Protocol Data Units)</strong> to detect potential loops before they happen</li>
+      <li>One switch acts as the <strong>root bridge</strong> — the center reference point</li>
+      <li>Other switches maintain a <strong>loop-free topology</strong> based on the root bridge</li>
+      <li>If a link goes down, STP sends a <strong>TCN (Topology Change Notification)</strong> — switches rework themselves around the failed interface</li>
+    </ul>
+
+    <div class="callout"><strong>// RSTP</strong>STP was replaced by the faster and more reliable Rapid Spanning Tree Protocol (RSTP).</div>
+  </section>
+
+  <div class="soc-section">
+    <h3>// SOC Analyst Relevance</h3>
+    <p>Ethernet basics may seem like pure networking territory, but a few concepts here directly connect to SOC work.</p>
+    <p>The most practical one is switching loops and broadcast storms. When a switching loop occurs — whether from misconfiguration or a deliberate attack — it generates a massive flood of broadcast traffic that can overwhelm the network. In your SIEM, this shows up as a sudden spike in traffic that looks remarkably similar to a DoS attack. Knowing the difference between a broadcast storm and an actual attack saves you from a false positive investigation.</p>
+    <p>Understanding how switches build and maintain their MAC tables also remains relevant — as covered in our OSI Model article, MAC flooding exploits exactly this mechanism, forcing a switch to behave like a hub and exposing traffic to all ports.</p>
+    <p>Finally, STP manipulation is worth being aware of as an advanced attack vector. An attacker sending rogue BPDU frames can force themselves into the root bridge position, intercepting traffic across the network. You won't encounter this daily as a Tier 1 analyst, but recognizing it in a threat intelligence report or an incident escalated from Tier 2 requires knowing what STP is and how it works.</p>
+    <p>As always — the deeper your understanding of how the network operates normally, the faster you recognize when something is wrong.</p>
+  </div>
+
+  <div class="takeaways">
+    <h3>// Key Takeaways</h3>
+    <div class="takeaway-item">Ethernet was standardized by IEEE 802.3 — the committee that still defines wired networking today</div>
+    <div class="takeaway-item">Frames use preamble, type field, and pad to structure data transmission reliably</div>
+    <div class="takeaway-item">CSMA/CD managed collisions on early networks — switches eliminated them entirely</div>
+    <div class="takeaway-item">Switches build MAC tables to create direct point-to-point connections between devices</div>
+    <div class="takeaway-item">STP/RSTP prevents switching loops from flooding the network with broadcast traffic</div>
+    <div class="takeaway-item">Broadcast storms and STP manipulation are real SOC-relevant threats hiding in Ethernet fundamentals</div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      Series: ClearSignal — Network+ Notes<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      Author: Khalil Djemai &nbsp;·&nbsp;
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-brand">Clear<span>Signal</span></div>
+      <a class="next-part" href="05-ethernet-standards.html">Next →<br>05 - Ethernet Standards<br>Modern Ethernet in depth</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
