@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 - Routing | ClearSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+    --accent: #00d4ff; --accent2: #ff6b35; --text: #e2e8f0; --muted: #64748b;
+    --green: #10b981; --yellow: #f59e0b; --purple: #7c3aed;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 60px 24px 120px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-home { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; }
+  .nav-home:hover { color: var(--accent); border-color: var(--accent); }
+  .star-btn { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s; letter-spacing: 0.05em; }
+  .star-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.08); }
+  .star-btn .star-icon { font-size: 14px; transition: transform 0.2s; }
+  .star-btn:hover .star-icon { transform: scale(1.3) rotate(15deg); }
+  .star-btn .star-label { font-weight: 700; }
+
+  /* STAR BANNER */
+  .star-banner { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin-bottom: 48px; flex-wrap: wrap; gap: 12px; }
+  .star-banner-text { font-size: 0.87rem; color: #94a3b8; }
+  .star-banner-text strong { color: var(--text); }
+
+  /* HEADER */
+  .header { border-left: 3px solid var(--accent); padding-left: 20px; margin-bottom: 60px; }
+  .series-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; line-height: 1.8; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 52px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); flex-shrink: 0; }
+  h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 28px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+  p { font-size: 0.93rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.8; }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 0.91rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.7; }
+  strong { color: var(--text); font-weight: 700; }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); color: var(--accent); padding: 2px 7px; border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border); }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.87rem; display: block; overflow-x: auto; }
+  .data-table th { background: var(--surface2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .data-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-weight: 700; font-size: 0.83rem; white-space: nowrap; }
+
+  /* ROUTING TABLE VISUAL */
+  .routing-table-visual { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 20px 0; }
+  .routing-table-visual .rt-header { display: grid; grid-template-columns: 1.5fr 1.2fr 1.2fr 0.8fr 0.8fr; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .routing-table-visual .rt-row { display: grid; grid-template-columns: 1.5fr 1.2fr 1.2fr 0.8fr 0.8fr; border-bottom: 1px solid var(--border); transition: background 0.2s; }
+  .routing-table-visual .rt-row:last-child { border-bottom: none; }
+  .routing-table-visual .rt-row:hover { background: var(--surface2); }
+  .routing-table-visual .rt-cell { padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .routing-table-visual .rt-header .rt-cell { color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .routing-table-visual .rt-row .rt-cell { color: #94a3b8; }
+  .routing-table-visual .rt-row .rt-cell:first-child { color: var(--accent2); }
+
+  /* NAT FLOW */
+  .nat-flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .nat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; text-align: center; flex: 1; min-width: 100px; }
+  .nat-box .nat-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .nat-box .nat-ip { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--accent); }
+  .nat-arrow { font-size: 20px; color: var(--accent); padding: 0 6px; flex-shrink: 0; }
+  .nat-box.router { border-color: var(--accent2); }
+  .nat-box.router .nat-label { color: var(--accent2); }
+  .nat-box.router .nat-ip { color: var(--accent2); }
+
+  /* PROTOCOL CARDS */
+  .protocol-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 20px 0; }
+  .protocol-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; transition: border-color 0.2s, transform 0.2s; }
+  .protocol-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .protocol-card.distance { border-top: 3px solid var(--yellow); }
+  .protocol-card.linkstate { border-top: 3px solid var(--accent); }
+  .protocol-card.hybrid { border-top: 3px solid var(--purple); }
+  .protocol-card.path { border-top: 3px solid var(--green); }
+  .proto-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+  .protocol-card.distance .proto-name { color: var(--yellow); }
+  .protocol-card.linkstate .proto-name { color: var(--accent); }
+  .protocol-card.hybrid .proto-name { color: var(--purple); }
+  .protocol-card.path .proto-name { color: var(--green); }
+  .proto-type { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .protocol-card li { font-size: 0.82rem; color: #94a3b8; margin-bottom: 5px; }
+
+  /* METRIC TYPES */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; margin: 16px 0; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; text-align: center; }
+  .metric-card .metric-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; }
+  .metric-card p { font-size: 0.78rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.87rem; color: #94a3b8; }
+  .callout.warning { border-color: var(--accent2); }
+  .callout.success { border-color: var(--green); }
+  .callout.tip { border-color: var(--yellow); }
+  .callout strong { display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .callout.warning strong { color: var(--accent2); }
+  .callout.success strong { color: var(--green); }
+  .callout.tip strong { color: var(--yellow); }
+
+  /* SOC SECTION */
+  .soc-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; margin: 32px 0; }
+  .soc-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .soc-section p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.8; }
+  .soc-section p:last-child { margin-bottom: 0; }
+
+  /* TAKEAWAYS */
+  .takeaways { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 32px 0; }
+  .takeaways h3 { color: var(--accent); margin-bottom: 16px; font-size: 11px; }
+  .takeaway-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; font-size: 0.88rem; color: #94a3b8; }
+  .takeaway-item::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+
+  /* FOOTER */
+  .footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .footer-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2; }
+  .footer-meta a { color: var(--accent); text-decoration: none; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 700; }
+  .footer-brand span { color: var(--accent); }
+  .next-part { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-align: right; text-decoration: none; display: block; transition: opacity 0.2s; }
+  .next-part:hover { opacity: 0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .container > * { animation: fadeIn 0.5s ease both; }
+
+  @media(max-width:600px){
+    .protocol-grid{grid-template-columns:1fr} .metric-grid{grid-template-columns:1fr 1fr}
+    .nat-flow{flex-direction:column} .routing-table-visual .rt-header{display:none}
+    .routing-table-visual .rt-row{grid-template-columns:1fr 1fr}
+    .footer-nav{flex-direction:column} .next-part{text-align:left} .star-banner{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-logo" href="../home.html">Clear<span>Signal</span></a>
+      <a class="nav-home" href="../home.html">⌂ Home</a>
+    </div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </nav>
+
+  <header class="header">
+    <div class="series-tag">// Network+ Series — 06</div>
+    <h1>Routing:<br><span>How Data Finds Its Way Across Networks</span></h1>
+    <div class="subtitle">
+      Author: Khalil Djemai — Aspiring SOC Analyst | Ex-Full Stack Developer<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="star-banner">
+    <div class="star-banner-text">Found this useful? <strong>Star the repository</strong> to support the project and help others find it.</div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </div>
+
+  <section>
+    <h2>What Is a Router?</h2>
+    <p>A router is any piece of hardware or software that <strong>forwards packets based on their destination IP address</strong>. The typical home router combines multiple functions into one box — router, switch, Wi-Fi WAP, firewall, and DHCP server.</p>
+    <p>When a packet arrives, the router strips off any L2 information and queues the resulting IP packet. The <strong>routing table</strong> then tells it exactly where to send it.</p>
+  </section>
+
+  <section>
+    <h2>The Routing Table</h2>
+    <p>Each row in a routing table defines a single route. The router uses a combination of the destination and subnet mask to match a packet to a route — if multiple routes match, it picks the best one.</p>
+
+    <div class="routing-table-visual">
+      <div class="rt-header">
+        <div class="rt-cell">Destination</div>
+        <div class="rt-cell">Gateway</div>
+        <div class="rt-cell">Genmask</div>
+        <div class="rt-cell">Flags</div>
+        <div class="rt-cell">Iface</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-cell">0.0.0.0</div>
+        <div class="rt-cell">192.168.1.1</div>
+        <div class="rt-cell">0.0.0.0</div>
+        <div class="rt-cell">UG</div>
+        <div class="rt-cell">eth0</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-cell">192.168.1.0</div>
+        <div class="rt-cell">0.0.0.0</div>
+        <div class="rt-cell">255.255.255.0</div>
+        <div class="rt-cell">U</div>
+        <div class="rt-cell">eth0</div>
+      </div>
+      <div class="rt-row">
+        <div class="rt-cell">127.0.0.0</div>
+        <div class="rt-cell">0.0.0.0</div>
+        <div class="rt-cell">255.0.0.0</div>
+        <div class="rt-cell">U</div>
+        <div class="rt-cell">lo</div>
+      </div>
+    </div>
+
+    <h3>// Routing Table Column Definitions</h3>
+    <table class="data-table">
+      <thead><tr><th>Column</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Destination</td><td>Every network ID directly connected to one of the router's ports</td></tr>
+        <tr><td>Gateway</td><td>IP address for the next-hop router — shows 0.0.0.0 or On-link if no gateway is needed</td></tr>
+        <tr><td>Genmask</td><td>Subnet mask defining the network ID</td></tr>
+        <tr><td>Flags</td><td>U = route is working, H = host route (complete IP, not subnet), G = route to gateway</td></tr>
+        <tr><td>Metric</td><td>Relative value used to pick the best route — lowest metric wins</td></tr>
+        <tr><td>Iface</td><td>Which port to use and its type — different routers use different interface names</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout"><strong>// Every Computer Has a Routing Table</strong>Not just routers — every host has its own routing table. It defines the default route, loopback handling, local LAN traffic, directed broadcasts, and multicast ranges.</div>
+
+    <div class="callout tip"><strong>// Default Route</strong>Every router has a default destination in its routing table — the port connecting it to another network. Two exceptions: isolated routers and Tier-1 backbone routers that form the main internet connections.</div>
+  </section>
+
+  <section>
+    <h2>NAT — Network Address Translation</h2>
+    <p>To protect LAN computers and conserve public IP addresses, routers use <strong>NAT</strong> — replacing the source IP address of outgoing packets with the router's public IP.</p>
+
+    <div class="nat-flow">
+      <div class="nat-box">
+        <div class="nat-label">Internal Host</div>
+        <div class="nat-ip">192.168.1.10</div>
+      </div>
+      <div class="nat-arrow">→</div>
+      <div class="nat-box router">
+        <div class="nat-label">NAT Router</div>
+        <div class="nat-ip">203.0.113.5</div>
+      </div>
+      <div class="nat-arrow">→</div>
+      <div class="nat-box">
+        <div class="nat-label">Internet</div>
+        <div class="nat-ip">Destination</div>
+      </div>
+    </div>
+
+    <h3>// PAT — Port Address Translation</h3>
+    <p>The most common form of NAT — handles many-to-one connections using port numbers to map traffic from specific internal machines:</p>
+    <ul>
+      <li>When a packet arrives at the NAT device, source/destination IPs and port numbers are recorded in the <strong>NAT translation table</strong></li>
+      <li>The private IP is swapped for the public IP on each packet</li>
+      <li>The internal port number is also translated to a unique number</li>
+      <li>Because of the wide TCP/IP port range, PAT can manage thousands of internal connections through a single public address</li>
+      <li><strong>Drawback:</strong> PAT works only for outgoing communication</li>
+    </ul>
+
+    <h3>// DNAT — Dynamic NAT</h3>
+    <p>Multiple internal computers share a <strong>pool of public addresses</strong> — private-to-public mapping happens dynamically from the pool.</p>
+
+    <h3>// Port Forwarding (SNAT — Static NAT)</h3>
+    <p>For incoming communication, SNAT maps a single routable IP to a single internal machine on a permanent one-to-one basis. Port forwarding designates a specific local address for various network services — external computers access a service using the router's public IP and the service's port number.</p>
+
+    <div class="callout warning"><strong>// Security Note</strong>Port forwarding exposes internal services to the internet. Every open forwarded port is an attack surface — always restrict to the minimum necessary and ensure the service is hardened.</div>
+  </section>
+
+  <section>
+    <h2>Dynamic Routing Protocols</h2>
+    <p>Most routers can update their routes dynamically — routing protocols allow routers to talk to each other, share topology information, and adapt when routes go down.</p>
+
+    <h3>// Metric Criteria</h3>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-name">Hop Count</div><p>Number of intermediate routers between source and destination</p></div>
+      <div class="metric-card"><div class="metric-name">Bandwidth</div><p>Some connections handle more data than others</p></div>
+      <div class="metric-card"><div class="metric-name">Delay</div><p>Latency issues that prevent or slow down connections</p></div>
+      <div class="metric-card"><div class="metric-name">Cost</div><p>Low-bandwidth connections have higher cost — admins can add cost to routes</p></div>
+    </div>
+
+    <h3>// Routing Protocol Types</h3>
+    <div class="protocol-grid">
+
+      <div class="protocol-card distance">
+        <div class="proto-name">RIPv1</div>
+        <div class="proto-type">Distance Vector</div>
+        <ul>
+          <li>Max 15 hop count</li>
+          <li>Updates every 30 seconds — caused network overload</li>
+          <li>No VLSM support, no authentication</li>
+          <li>Largely obsolete</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card distance">
+        <div class="proto-name">RIPv2</div>
+        <div class="proto-type">Distance Vector</div>
+        <ul>
+          <li>Supports VLSM and authentication</li>
+          <li>Multicast instead of broadcast</li>
+          <li>Updates every 90 seconds</li>
+          <li>Slow convergence — suitable for simple networks only</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card linkstate">
+        <div class="proto-name">OSPF</div>
+        <div class="proto-type">Link State — IGP</div>
+        <ul>
+          <li>Most used interior gateway protocol in the world</li>
+          <li>Designed for single AS environments</li>
+          <li>Uses Hello packets for neighbor discovery</li>
+          <li>Exchanges LSAs to build Link-State Database</li>
+          <li>SPF algorithm calculates shortest paths</li>
+          <li>Hierarchical areas for scalability</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card linkstate">
+        <div class="proto-name">IS-IS</div>
+        <div class="proto-type">Link State</div>
+        <ul>
+          <li>Originally designed for CLNS, adapted for IP</li>
+          <li>Supports IPv6 natively</li>
+          <li>Not widely used</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card path">
+        <div class="proto-name">BGP</div>
+        <div class="proto-type">Path Vector — EGP</div>
+        <ul>
+          <li>The foundational protocol of the internet</li>
+          <li>Operates between autonomous systems (AS)</li>
+          <li>Focuses on routing policy, not physical path</li>
+          <li>Can aggregate multiple routes into one</li>
+          <li>Considered hybrid — combines distance-vector and path-vector</li>
+        </ul>
+      </div>
+
+      <div class="protocol-card hybrid">
+        <div class="proto-name">EIGRP</div>
+        <div class="proto-type">Hybrid — Cisco Proprietary</div>
+        <ul>
+          <li>Cisco's enhanced interior gateway protocol</li>
+          <li>Combines aspects of distance vector and link state</li>
+          <li>Fast convergence</li>
+          <li>Cisco devices only</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="callout"><strong>// Route Redistribution</strong>When a router advertises routes learned from one routing protocol into another — allowing networks using different protocols to share routing information and work together. Uses administrative distance to determine the most reliable route.</div>
+  </section>
+
+  <section>
+    <h2>Router Configuration</h2>
+    <p>New routers require initial configuration — connected via a <strong>rollover cable</strong> and a terminal emulation program like PuTTY. Most Cisco products run <strong>Cisco IOS</strong>.</p>
+
+    <h3>// Configuration Best Practices</h3>
+    <ul>
+      <li><strong>Always fully configure before deploying</strong> — avoid rogue DHCP issues and route overlaps</li>
+      <li>Add strong passwords immediately — change all defaults</li>
+      <li>Secure the web interface — set a static IP first if needed</li>
+      <li>Configure the WAN side — most routers use DHCP to connect to the ISP</li>
+      <li>Choose a private network ID for the LAN side unless NAT is not needed</li>
+      <li>Back up configurations and document all routes</li>
+    </ul>
+
+    <div class="callout warning"><strong>// Static Routes = First Suspect</strong>If data isn't going where it's supposed to, static routes are the main suspects.</div>
+
+    <h3>// MTU and Fragmentation</h3>
+    <p>Network components split packets or frames to stay below the <strong>MTU (Maximum Transmission Unit)</strong> threshold for the next hop. Fragmentation increases the number of packets needed — a gross inefficiency.</p>
+    <ul>
+      <li><strong>Path MTU</strong> — the largest packet size transmissible without fragmentation through all hops</li>
+      <li><strong>Path MTU Discovery</strong> — devices determine the path MTU dynamically</li>
+      <li>MTU size can be adjusted at the source to eliminate fragmentation entirely</li>
+    </ul>
+
+    <h3>// Diagnostic Tools</h3>
+    <ul>
+      <li><strong>Traceroute</strong> — records the route between any two hosts on a network</li>
+      <li><strong>My Traceroute (mtr)</strong> — dynamic version, continually updates the selected route</li>
+      <li><strong>Pathping</strong> — Windows equivalent, performs a similar function</li>
+    </ul>
+  </section>
+
+  <div class="soc-section">
+    <h3>// SOC Analyst Relevance</h3>
+    <p>Routing knowledge sits at an interesting crossroads — it's foundational enough that every security professional benefits from it, yet deep enough that specialists like cloud security engineers and analysts rely on it daily. If you ever find yourself building cloud infrastructure, setting up virtual labs, or analyzing cloud-native security alerts, you'll quickly realize that the core concepts are the same — just implemented differently. NAT, PAT, routing tables, port forwarding — these appear constantly in cloud environments under different names but with the same underlying logic.</p>
+    <p>Routers are, as we touched on in a previous article, high-value targets. They control the flow of all traffic — internal and external — making any successful attack on them potentially catastrophic. While the specific attack techniques that target routing protocols tend to be advanced and typically occur in large or specialized enterprise environments, the awareness that routers are precious and heavily targeted assets should shape how you think about network security as a whole.</p>
+    <p>From a practical standpoint, you cannot build a meaningful home lab — local or cloud-based — without understanding routing. Virtually every network appliance including routers is available in virtualized form, and the concepts translate directly. Knowing how to read a routing table, understand NAT, or configure basic static routes is what separates someone who can build a functional lab environment from someone who can't.</p>
+    <p>On the hardening side — changing default passwords, securing the web interface, and fully configuring a router before deployment are things a SOC analyst would flag during a security audit or when reviewing an incident report involving a compromised network device. You may not be the one doing the configuring, but recognizing a misconfigured or default-credential router as a security gap is absolutely within your scope.</p>
+    <p>And as always — you don't need to memorize every routing protocol, every metric type, or every flag in a routing table. Having heard the terminology, knowing that things work in a particular way, and being able to recognize them when they appear in logs or documentation is what matters. That recognition is what makes you a well-rounded analyst.</p>
+  </div>
+
+  <div class="takeaways">
+    <h3>// Key Takeaways</h3>
+    <div class="takeaway-item">Routers forward packets based on destination IP — stripping L2 info and consulting the routing table</div>
+    <div class="takeaway-item">Every device — not just routers — has a routing table defining how to handle different traffic types</div>
+    <div class="takeaway-item">NAT/PAT allows many internal hosts to share a single public IP — fundamental to modern networks</div>
+    <div class="takeaway-item">Dynamic routing protocols let routers adapt automatically when network topology changes</div>
+    <div class="takeaway-item">OSPF is the dominant interior protocol; BGP is what holds the internet together</div>
+    <div class="takeaway-item">Always fully configure and harden a router before deploying — defaults are a security liability</div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      Series: ClearSignal — Network+ Notes<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      Author: Khalil Djemai &nbsp;·&nbsp;
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-brand">Clear<span>Signal</span></div>
+      <a class="next-part" href="07-tcp-ip-applications.html">Next →<br>07 - TCP/IP Applications<br>The protocols powering everyday internet use</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
