@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07 - TCP/IP Applications | ClearSignal</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a; --surface: #111827; --surface2: #1a2235; --border: #1e2d45;
+    --accent: #00d4ff; --accent2: #ff6b35; --text: #e2e8f0; --muted: #64748b;
+    --green: #10b981; --yellow: #f59e0b; --purple: #7c3aed; --red: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.7; min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 60px 24px 120px; position: relative; z-index: 1; }
+
+  /* NAV */
+  nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .nav-left { display: flex; align-items: center; gap: 20px; }
+  .nav-logo { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-home { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; transition: color 0.2s; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; }
+  .nav-home:hover { color: var(--accent); border-color: var(--accent); }
+  .star-btn { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s; letter-spacing: 0.05em; }
+  .star-btn:hover { border-color: var(--yellow); color: var(--yellow); background: rgba(245,158,11,0.08); }
+  .star-btn .star-icon { font-size: 14px; transition: transform 0.2s; }
+  .star-btn:hover .star-icon { transform: scale(1.3) rotate(15deg); }
+  .star-btn .star-label { font-weight: 700; }
+
+  /* STAR BANNER */
+  .star-banner { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 20px; margin-bottom: 48px; flex-wrap: wrap; gap: 12px; }
+  .star-banner-text { font-size: 0.87rem; color: #94a3b8; }
+  .star-banner-text strong { color: var(--text); }
+
+  /* HEADER */
+  .header { border-left: 3px solid var(--accent); padding-left: 20px; margin-bottom: 60px; }
+  .series-tag { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 16px; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--muted); font-family: 'JetBrains Mono', monospace; border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; line-height: 1.8; }
+  .subtitle a { color: var(--accent); text-decoration: none; }
+
+  /* TYPOGRAPHY */
+  h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin: 52px 0 16px; display: flex; align-items: center; gap: 12px; }
+  h2::before { content: ''; display: block; width: 24px; height: 2px; background: var(--accent); flex-shrink: 0; }
+  h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin: 28px 0 10px; }
+  h4 { font-size: 0.95rem; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+  p { font-size: 0.93rem; color: #cbd5e1; margin-bottom: 14px; line-height: 1.8; }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 0.91rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.7; }
+  strong { color: var(--text); font-weight: 700; }
+  code { font-family: 'JetBrains Mono', monospace; background: var(--surface2); color: var(--accent); padding: 2px 7px; border-radius: 3px; font-size: 0.85em; border: 1px solid var(--border); }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.87rem; display: block; overflow-x: auto; }
+  .data-table th { background: var(--surface2); color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #94a3b8; vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .data-table td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--accent2); font-weight: 700; font-size: 0.83rem; white-space: nowrap; }
+
+  /* PROTOCOL CARDS */
+  .protocol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 20px 0; }
+  .protocol-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
+  .protocol-card:hover { transform: translateY(-2px); }
+  .protocol-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .protocol-card.tcp::before { background: var(--accent); }
+  .protocol-card.udp::before { background: var(--yellow); }
+  .protocol-card.both::before { background: var(--green); }
+  .protocol-card.tcp:hover { border-color: var(--accent); }
+  .protocol-card.udp:hover { border-color: var(--yellow); }
+  .protocol-card.both:hover { border-color: var(--green); }
+  .proto-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .proto-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #fff; }
+  .proto-port { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); background: var(--surface2); padding: 2px 8px; border-radius: 3px; border: 1px solid var(--border); }
+  .proto-transport { font-family: 'JetBrains Mono', monospace; font-size: 9px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .protocol-card.tcp .proto-transport { color: var(--accent); }
+  .protocol-card.udp .proto-transport { color: var(--yellow); }
+  .protocol-card.both .proto-transport { color: var(--green); }
+  .proto-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+  .proto-attacks { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .attack-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 7px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 3px; color: var(--red); }
+
+  /* PORT RANGES */
+  .port-ranges { display: flex; flex-direction: column; gap: 3px; margin: 16px 0; }
+  .port-range { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+  .port-range .range { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 11px; min-width: 150px; font-weight: 700; }
+  .port-range .label { color: var(--text); font-size: 0.85rem; font-weight: 600; min-width: 120px; }
+  .port-range .desc { color: var(--muted); font-size: 0.82rem; }
+
+  /* SESSION TERMS */
+  .terms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+  .term-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  .term-name { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .term-def { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+  /* PROTOCOL FEATURES */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px; }
+  .feature-name { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .feature-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+  /* CALLOUTS */
+  .callout { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 0.87rem; color: #94a3b8; }
+  .callout.warning { border-color: var(--accent2); }
+  .callout.success { border-color: var(--green); }
+  .callout.tip { border-color: var(--yellow); }
+  .callout.danger { border-color: var(--red); }
+  .callout strong { display: block; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .callout.warning strong { color: var(--accent2); }
+  .callout.success strong { color: var(--green); }
+  .callout.tip strong { color: var(--yellow); }
+  .callout.danger strong { color: var(--red); }
+
+  /* SOC SECTION */
+  .soc-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 28px; margin: 32px 0; }
+  .soc-section h3 { color: var(--accent); margin-bottom: 16px; }
+  .soc-section p { font-size: 0.9rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.8; }
+  .soc-section p:last-child { margin-bottom: 0; }
+
+  /* TAKEAWAYS */
+  .takeaways { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; margin: 32px 0; }
+  .takeaways h3 { color: var(--accent); margin-bottom: 16px; font-size: 11px; }
+  .takeaway-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; font-size: 0.88rem; color: #94a3b8; }
+  .takeaway-item::before { content: '→'; color: var(--accent); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; margin-top: 1px; }
+
+  /* FOOTER */
+  .footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .footer-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); line-height: 2; }
+  .footer-meta a { color: var(--accent); text-decoration: none; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .footer-brand { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #fff; font-weight: 700; }
+  .footer-brand span { color: var(--accent); }
+  .next-part { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); text-align: right; text-decoration: none; display: block; transition: opacity 0.2s; }
+  .next-part:hover { opacity: 0.7; }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .container > * { animation: fadeIn 0.5s ease both; }
+
+  @media(max-width:600px){
+    .protocol-grid{grid-template-columns:1fr} .terms-grid{grid-template-columns:1fr}
+    .features-grid{grid-template-columns:1fr 1fr} .footer-nav{flex-direction:column}
+    .next-part{text-align:left} .star-banner{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <nav>
+    <div class="nav-left">
+      <a class="nav-logo" href="../home.html">Clear<span>Signal</span></a>
+      <a class="nav-home" href="../home.html">⌂ Home</a>
+    </div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </nav>
+
+  <header class="header">
+    <div class="series-tag">// Network+ Series — 07</div>
+    <h1>TCP/IP Applications:<br><span>The Protocols Powering the Internet</span></h1>
+    <div class="subtitle">
+      Author: Khalil Djemai — Aspiring SOC Analyst | Ex-Full Stack Developer<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+  </header>
+
+  <div class="star-banner">
+    <div class="star-banner-text">Found this useful? <strong>Star the repository</strong> to support the project and help others find it.</div>
+    <a class="star-btn" href="https://github.com/kotaid/sec-notes" target="_blank">
+      <span class="star-icon">⭐</span>
+      <span class="star-label">Star on GitHub</span>
+    </a>
+  </div>
+
+  <section>
+    <h2>Sessions and the TCP/IP Suite</h2>
+    <p>All the aspects and protocols that make up TCP/IP are collectively called the <strong>TCP/IP suite</strong> or the <strong>Internet Protocol suite</strong>. Any single communication between two computers is called a <strong>session</strong> — all sessions must begin and eventually end.</p>
+
+    <h3>// TCP Connection Lifecycle</h3>
+    <ol>
+      <li>Client sends a <strong>SYN</strong> (synchronize) packet</li>
+      <li>Server responds with a <strong>SYN-ACK</strong> (synchronize-acknowledge) packet</li>
+      <li>Client sends an <strong>ACK</strong> (acknowledge) packet — connection established</li>
+      <li>Connection terminated gracefully by sending a <strong>FIN</strong> (finish) flag</li>
+    </ol>
+
+    <p>Most TCP/IP applications use TCP because connection-oriented sessions are designed to check for errors. UDP is used for applications that don't require a connection-oriented session.</p>
+  </section>
+
+  <section>
+    <h2>Core Protocols — Quick Reference</h2>
+    <p>Before diving into each protocol, here's a quick reference of the most important ones:</p>
+
+    <table class="data-table">
+      <thead><tr><th>Protocol</th><th>Port(s)</th><th>Transport</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>DNS</td><td>53</td><td>UDP/TCP</td><td>Name to IP resolution</td></tr>
+        <tr><td>DHCP</td><td>67 (server), 68 (client)</td><td>UDP</td><td>Dynamic IP assignment</td></tr>
+        <tr><td>NTP/SNTP</td><td>123</td><td>UDP</td><td>Clock synchronization</td></tr>
+        <tr><td>TFTP</td><td>69</td><td>UDP</td><td>Simple file transfer</td></tr>
+        <tr><td>ICMP</td><td>—</td><td>IP (L3)</td><td>Error reporting, diagnostics</td></tr>
+        <tr><td>IGMP</td><td>—</td><td>IP (L3)</td><td>Multicast group management</td></tr>
+        <tr><td>Telnet</td><td>23</td><td>TCP</td><td>Remote CLI access (unencrypted)</td></tr>
+        <tr><td>SSH</td><td>22</td><td>TCP</td><td>Encrypted remote access</td></tr>
+        <tr><td>SMTP</td><td>25</td><td>TCP</td><td>Send email</td></tr>
+        <tr><td>POP3</td><td>110</td><td>TCP</td><td>Retrieve email (legacy)</td></tr>
+        <tr><td>IMAP4</td><td>143</td><td>TCP</td><td>Retrieve email (modern)</td></tr>
+        <tr><td>FTP</td><td>20, 21</td><td>TCP</td><td>File transfer</td></tr>
+        <tr><td>HTTP</td><td>80</td><td>TCP</td><td>Web traffic (unencrypted)</td></tr>
+        <tr><td>HTTPS</td><td>443</td><td>TCP</td><td>Web traffic (TLS encrypted)</td></tr>
+        <tr><td>MySQL</td><td>3306</td><td>TCP</td><td>Database</td></tr>
+        <tr><td>MS SQL</td><td>1433</td><td>TCP</td><td>Database</td></tr>
+        <tr><td>Oracle</td><td>1521</td><td>TCP</td><td>Database</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Protocol Deep Dives</h2>
+
+    <h3>// UDP-Based Protocols</h3>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card udp">
+        <div class="proto-header">
+          <div class="proto-name">DNS</div>
+          <div class="proto-port">:53</div>
+        </div>
+        <div class="proto-transport">UDP (TCP for large responses)</div>
+        <div class="proto-desc">Enables the use of names associated with IP addresses. Translates human-readable domain names into IP addresses across the internet and private intranets.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">DNS Spoofing</span>
+          <span class="attack-tag">DNS Tunneling</span>
+          <span class="attack-tag">Cache Poisoning</span>
+        </div>
+      </div>
+
+      <div class="protocol-card udp">
+        <div class="proto-header">
+          <div class="proto-name">DHCP</div>
+          <div class="proto-port">:67/:68</div>
+        </div>
+        <div class="proto-transport">UDP</div>
+        <div class="proto-desc">Dynamic IP assignment. Clients use port 68, servers use port 67. Covered in depth in our TCP/IP Basics article.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">DHCP Spoofing</span>
+          <span class="attack-tag">DHCP Poisoning</span>
+          <span class="attack-tag">Rogue Server</span>
+        </div>
+      </div>
+
+      <div class="protocol-card udp">
+        <div class="proto-header">
+          <div class="proto-name">NTP / SNTP</div>
+          <div class="proto-port">:123</div>
+        </div>
+        <div class="proto-transport">UDP</div>
+        <div class="proto-desc">Synchronizes clocks across network devices. Operates in a hierarchical clock strata model — hierarchy continues until stratum 15, after which devices are not synchronized.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">Brute-force</span>
+          <span class="attack-tag">MITM / Sniffing</span>
+          <span class="attack-tag">Version Exploits</span>
+        </div>
+      </div>
+
+      <div class="protocol-card udp">
+        <div class="proto-header">
+          <div class="proto-name">TFTP</div>
+          <div class="proto-port">:69</div>
+        </div>
+        <div class="proto-transport">UDP</div>
+        <div class="proto-desc">Simple file transfer with no authentication or data protection. Only used for updating software and configurations on network devices where packet loss is unlikely.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">No Auth</span>
+          <span class="attack-tag">Legacy Exploits</span>
+          <span class="attack-tag">Disable if unused</span>
+        </div>
+      </div>
+
+    </div>
+
+    <h3>// Network Layer Protocols</h3>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card both">
+        <div class="proto-header">
+          <div class="proto-name">ICMP</div>
+          <div class="proto-port">L3</div>
+        </div>
+        <div class="proto-transport">IP — Network Layer</div>
+        <div class="proto-desc">Handles low-level tasks such as host unreachable messages and router advertisements. Ping uses ICMP echo requests and replies.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">ICMP Flood</span>
+          <span class="attack-tag">Ping Sweep</span>
+          <span class="attack-tag">Ping of Death</span>
+        </div>
+      </div>
+
+      <div class="protocol-card both">
+        <div class="proto-header">
+          <div class="proto-name">IGMP</div>
+          <div class="proto-port">L3</div>
+        </div>
+        <div class="proto-transport">IP — Network Layer</div>
+        <div class="proto-desc">Manages multicast group memberships. Allows hosts and routers to establish which devices are part of a specific multicast group for efficient data delivery.</div>
+      </div>
+
+    </div>
+
+    <h3>// Remote Access</h3>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">Telnet</div>
+          <div class="proto-port">:23</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">Originally used to access remote mainframes via CLI. Can be configured with username/password but offers absolutely no encryption.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">No Encryption</span>
+          <span class="attack-tag">Credential Sniffing</span>
+          <span class="attack-tag">MITM</span>
+        </div>
+      </div>
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">SSH</div>
+          <div class="proto-port">:22</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">Has fully replaced Telnet for serious remote access. Every aspect of SSH is encrypted. The industry standard for secure terminal emulation.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">Brute-force</span>
+          <span class="attack-tag">Password Spray</span>
+        </div>
+      </div>
+
+    </div>
+
+    <h3>// Email Protocols</h3>
+    <p>Traditional email programs use Layer 7 protocols — <strong>SMTP</strong> to send email to servers, and <strong>POP3</strong> or <strong>IMAP4</strong> to retrieve email from servers.</p>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">POP3</div>
+          <div class="proto-port">:110</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">Post Office Protocol v3. Downloads email from server to client and typically deletes it from the server. On its way out — being replaced by IMAP4.</div>
+      </div>
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">IMAP4</div>
+          <div class="proto-port">:143</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">Internet Message Access Protocol v4. Preferred over POP3 — enables synchronization across many devices, supports server-side folders for organizing emails.</div>
+      </div>
+
+    </div>
+
+    <div class="callout"><strong>// Email Client Setup</strong>To configure an email client you need: the POP3 or IMAP4 server domain name for receiving, and the SMTP server domain name for sending. Web-based mail uses a web interface and can be accessed from anywhere.</div>
+
+    <h3>// File Transfer</h3>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">FTP</div>
+          <div class="proto-port">:20/:21</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">The original internet file transfer protocol. Active mode: client opens a port, tells server where to connect. Passive mode: server opens a port, tells client where to connect. No authentication by default, zero encryption.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">Brute-force</span>
+          <span class="attack-tag">Password Spray</span>
+          <span class="attack-tag">Anonymous Access</span>
+          <span class="attack-tag">Backdoor Upload</span>
+          <span class="attack-tag">Data Exfiltration</span>
+        </div>
+      </div>
+
+    </div>
+
+    <h3>// Web Protocols</h3>
+
+    <div class="protocol-grid">
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">HTTP</div>
+          <div class="proto-port">:80</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">The foundation of the web. Stateless — holds no memory of previously executed commands, which is why technologies like AJAX exist. Transmits data without any encryption.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">Payload Sniffing</span>
+          <span class="attack-tag">Web Attacks</span>
+          <span class="attack-tag">Initial Access Vector</span>
+        </div>
+      </div>
+
+      <div class="protocol-card tcp">
+        <div class="proto-header">
+          <div class="proto-name">HTTPS</div>
+          <div class="proto-port">:443</div>
+        </div>
+        <div class="proto-transport">TCP</div>
+        <div class="proto-desc">HTTP secured with TLS (Transport Layer Security) — the latest version of SSL. Sets up an encrypted private connection. Every new web server should be using HTTPS with TLS.</div>
+        <div class="proto-attacks">
+          <span class="attack-tag">Web Attacks</span>
+          <span class="attack-tag">TLS Downgrade</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout danger"><strong>// HTTP is not secure</strong>HTTP transmits everything in plain text — credentials, session tokens, form data. Any attacker with network access can intercept it. There is no acceptable reason to run a public web server on HTTP only in 2025.</div>
+  </section>
+
+  <section>
+    <h2>Port Ranges</h2>
+    <p>A port number is a <strong>16-bit value between 0 and 65,535</strong>.</p>
+
+    <div class="port-ranges">
+      <div class="port-range">
+        <span class="range">0 – 1,023</span>
+        <span class="label">Well-known ports</span>
+        <span class="desc">Reserved for specific TCP/IP applications</span>
+      </div>
+      <div class="port-range">
+        <span class="range">1,024 – 49,151</span>
+        <span class="label">Registered ports</span>
+        <span class="desc">Less common applications — anyone can register with IANA or use for servers</span>
+      </div>
+      <div class="port-range">
+        <span class="range">49,152 – 65,535</span>
+        <span class="label">Ephemeral ports</span>
+        <span class="desc">Temporary endpoints for short-lived client connections — IANA recommended range</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sessions, Sockets, and Endpoints</h2>
+
+    <div class="terms-grid">
+      <div class="term-card">
+        <div class="term-name">Socket / Endpoint</div>
+        <div class="term-def">Session information (IP address, port number, and L4 protocol) held in memory on a single computer</div>
+      </div>
+      <div class="term-card">
+        <div class="term-name">Socket Pairs / Endpoints</div>
+        <div class="term-def">Session information held in memory on both computers about the same connection</div>
+      </div>
+      <div class="term-card">
+        <div class="term-name">Session</div>
+        <div class="term-def">The entire interconnection between two endpoints</div>
+      </div>
+    </div>
+
+    <div class="callout success"><strong>// netstat</strong>Use the <code>netstat</code> command to see the list of connected endpoints on a computer. Useful switches: <code>-a</code> (all connections), <code>-n</code> (numeric), <code>-o</code> (process ID), <code>-b</code> (executable name).</div>
+  </section>
+
+  <section>
+    <h2>Identifying Good vs Bad Communications</h2>
+    <ol>
+      <li>Memorize known ports for common TCP/IP applications</li>
+      <li>Learn to use <code>netstat</code> switches — <code>-a</code>, <code>-n</code>, <code>-o</code>, <code>-b</code></li>
+      <li>Learn the ports that normally run on your operating system — most OSes have their own important internal processes</li>
+      <li>Suspect ports not normally running on your OS — search about them and remove if found malicious</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Common Protocol Features</h2>
+    <p>Although protocols are often drastically different, most address these common issues:</p>
+
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-name">Flow Control</div><div class="feature-desc">Messages from receiver instructing sender to speed up or slow down transmission</div></div>
+      <div class="feature-card"><div class="feature-name">Packet Acknowledgment</div><div class="feature-desc">Return message confirming receipt of data</div></div>
+      <div class="feature-card"><div class="feature-name">Error Detection</div><div class="feature-desc">Codes used to verify data wasn't damaged during transmission</div></div>
+      <div class="feature-card"><div class="feature-name">Error Correction</div><div class="feature-desc">Retransmission of lost or damaged data</div></div>
+      <div class="feature-card"><div class="feature-name">Segmentation</div><div class="feature-desc">Division of long data streams into smaller pieces for efficient transfer</div></div>
+      <div class="feature-card"><div class="feature-name">Data Encryption</div><div class="feature-desc">Cryptographic keys protecting data transmitted across a network</div></div>
+      <div class="feature-card"><div class="feature-name">Data Compression</div><div class="feature-desc">Reducing transmission size by eliminating redundant information</div></div>
+    </div>
+  </section>
+
+  <div class="soc-section">
+    <h3>// SOC Analyst Relevance</h3>
+    <p>This article covers a lot of ground — and the honest truth is that every single protocol listed here has its own family of attacks, exploitation techniques, and detection signatures. Going deep on each one is beyond the scope of this article — that's what the SOC 101 series and the lab project are for. But the foundation matters: you cannot detect what you don't understand.</p>
+    <p>Many of these protocols have been around for decades, accumulating vulnerabilities and known misconfigurations along the way. Despite that, they remain widely deployed in enterprise environments — legacy systems that can't be updated, vendor dependencies, and operational constraints keep old protocols alive. As a T1 analyst, there's a very real chance you'll be defending environments running Telnet, FTP, or outdated NTP implementations. Knowing how each protocol functions at a basic level, and being aware of its historical weaknesses, directly shapes how you triage alerts related to them.</p>
+    <p>To give you a starting point, here are the key attack categories per protocol — details will come in later series:</p>
+    <p><strong>TCP:</strong> SYN scans, connect scans, FIN scans — each leaves a different trace pattern in network logs, which is exactly why knowing the handshake matters for scan detection.</p>
+    <p><strong>DHCP:</strong> DHCP spoofing and poisoning — an attacker obtaining a trusted IP or deploying a rogue server to redirect traffic.</p>
+    <p><strong>FTP:</strong> Brute-force, password spraying, anonymous access abuse, malicious file uploads to install backdoors, filesystem enumeration, and data exfiltration. FTP is commonly used by attackers for initial access and post-exploitation due to its lack of authentication and encryption by default.</p>
+    <p><strong>ICMP:</strong> ICMP floods and ping sweeps for reconnaissance and denial of service.</p>
+    <p><strong>SSH:</strong> Despite its strong security record, SSH remains a target for brute-force and password spray attacks — particularly against systems with default or weak credentials.</p>
+    <p><strong>NTP:</strong> Exploitable depending on version, vulnerable to brute-force, and credentials can be revealed through MITM attacks or network traffic sniffing.</p>
+    <p><strong>TFTP:</strong> Old, often running vulnerable versions. If it's not needed in your environment, it should be disabled.</p>
+    <p><strong>HTTP/HTTPS:</strong> Payloads over plain HTTP can be sniffed entirely. A website is often the public face of a network and a primary initial attack vector — web attacks delivered over HTTP and HTTPS are among the most common threats a SOC analyst encounters.</p>
+    <p>One concept worth internalizing: an attack's layer determines how high up the evidence trail goes. A TCP scan operates at L4 — you'll see it in network traffic and firewall logs, but don't expect it to surface in application-level logs. An HTTP-delivered payload, on the other hand, operating at L7, will leave traces across almost every monitored layer — network traffic, WAF alerts, application logs, and endpoint detection solutions. Understanding this helps you know where to look and what to correlate.</p>
+    <p>Finally — knowing the correct terminology makes you a better analyst. Clear, precise technical language in reports and escalations is a professional skill, and it starts with knowing what each protocol is actually called and what it does.</p>
+  </div>
+
+  <div class="takeaways">
+    <h3>// Key Takeaways</h3>
+    <div class="takeaway-item">TCP/IP applications each use specific ports and transport protocols — memorizing the most common ones is foundational SOC knowledge</div>
+    <div class="takeaway-item">UDP-based protocols (DNS, DHCP, NTP, TFTP) sacrifice reliability for speed — and often security</div>
+    <div class="takeaway-item">SSH replaced Telnet — if you see Telnet traffic in a modern environment, that's a red flag</div>
+    <div class="takeaway-item">FTP has no encryption or authentication by default — it's a common attacker tool for post-exploitation</div>
+    <div class="takeaway-item">HTTP transmits everything in plain text — HTTPS with TLS is the only acceptable standard</div>
+    <div class="takeaway-item">An attack's layer determines how high up the evidence trail goes — this shapes where you look during an investigation</div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      Series: ClearSignal — Network+ Notes<br>
+      Sources: Mike Meyers — CompTIA Network+ Course (Udemy) & "CompTIA Network+ All-in-One Exam Guide" | TCM Security<br>
+      Author: Khalil Djemai &nbsp;·&nbsp;
+      <a href="https://github.com/kotaid" target="_blank">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://www.linkedin.com/in/khalildjemai" target="_blank">LinkedIn</a>
+    </div>
+    <div class="footer-nav">
+      <div class="footer-brand">Clear<span>Signal</span></div>
+      <a class="next-part" href="08-network-naming.html">Next →<br>08 - Network Naming<br>DNS in depth</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
